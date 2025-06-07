@@ -33,12 +33,12 @@ st.markdown("#### 3. Are your strings connected to inverters with transformerles
 transformerless = st.radio("Select one:", ("Yes", "No", "Not sure"))
 if transformerless == "Yes":
     score += 2
-
 st.markdown("#### 4. Are your panels PID-resistant certified (as per IEC 62804)?")
-pid_resistant = st.radio("Select one:", ("Yes", "No", "Not sure"))
-if pid_resistant == "No":
-    score += 2
-elif pid_resistant == "Not sure":
+pid_resistant = st.radio(
+    "Select one:", 
+    ("Yes", "No", "Not sure"),
+    key="pid_resistant"
+)
     score += 1
 
 st.markdown("#### 5. What is your system voltage?")
