@@ -1,78 +1,114 @@
 import streamlit as st
 
-st.set_page_config(page_title="PID Health Checklist", page_icon="⚡")
+st.set_page_config(
+    page_title="PID Health Checklist",
+    page_icon="⚡",
+    layout="centered",
+    initial_sidebar_state="collapsed"
+)
 
-st.title("⚡ PID Health Checklist")
-st.markdown("### Is your solar plant vulnerable to Potential Induced Degradation? Let’s find out!")
+st.title("⚡ PID Health Risk Checklist")
+st.markdown("""
+Use this checklist to evaluate if your solar PV system is at risk of **Potential Induced Degradation (PID)**.  
+Answer the following questions honestly to get a quick PID health status for your plant.
+""")
 
-st.markdown("---")
+st.markdown("#### 1. What is the type of your solar plant?")
+plant_type = st.radio("Select one:", (
+    "Rooftop (<20kW)", 
+    "Commercial (>20kW, <500kW)", 
+    "Utility-scale (>500kW)"
+), key="plant_type")
 
+st.markdown("#### 2. What is your site's climate condition?")
+location = st.radio("Select one:", (
+    "Dry (e.g. Rajasthan)", 
+    "Humid (e.g. Chennai, Kerala)", 
+    "Coastal (e.g. Mumbai, Vizag)"
+), key="location")
+
+st.markdown("#### 3. Is your inverter transformerless?")
+transformerless = st.radio("Select one:", (
+    "Yes", "No", "Not sure"
+), key="transformerless")
+
+st.markdown("#### 4. Are your panels PID-resistant certified (as per IEC 62804)?")
+pid_resistant = st.radio("Select one:", (
+    "Yes", "No", "Not sure"
+), key="pid_resistant")
+
+st.markdown("#### 5. What is the maximum string/system voltage?")
+voltage = st.radio("Select one:", (
+    "Below 600V", 
+    "600V – 1000V", 
+    "Above 1000V"
+), key="voltage")
+
+st.markdown("#### 6. Do you perform regular module cleaning?")
+cleaning = st.radio("Select one:", (
+    "Yes", "No"
+), key="cleaning")
+
+st.markdown("#### 7. Are your modules properly grounded?")
+grounding = st.radio("Select one:", (
+    "Yes", "No", "Not sure"
+), key="grounding")
+
+# --- Scoring logic ---
 score = 0
 
-st.markdown("#### 1. What is your plant type?")
-plant_type = st.radio(
-    "Select one:",
-    ("Rooftop (<20kW)", "Commercial (>20kW, <500kW)", "Utility-scale (>500kW)")
-)
+# 1. Plant Type
 if plant_type == "Utility-scale (>500kW)":
     score += 2
 elif plant_type == "Commercial (>20kW, <500kW)":
     score += 1
 
-st.markdown("#### 2. What is your location type?")
-location = st.radio(
-    "Select one:",
-    ("Dry (e.g. Rajasthan)", "Humid (e.g. Chennai, Kerala)", "Coastal (e.g. Mumbai, Vizag)")
-)
+# 2. Location
 if location == "Coastal (e.g. Mumbai, Vizag)":
-    score += 3
-elif location == "Humid (e.g. Chennai, Kerala)":
     score += 2
+elif location == "Humid (e.g. Chennai, Kerala)":
+    score += 1
 
-st.markdown("#### 3. Are your strings connected to inverters with transformerless topology?")
-transformerless = st.radio("Select one:", ("Yes", "No", "Not sure"))
+# 3. Transformerless Inverter
 if transformerless == "Yes":
     score += 2
-st.markdown("#### 4. Are your panels PID-resistant certified (as per IEC 62804)?")
-pid_resistant = st.radio(
-    "Select one:", 
-    ("Yes", "No", "Not sure"),
-    key="pid_resistant"
-)
+elif transformerless == "Not sure":
     score += 1
 
-st.markdown("#### 5. What is your system voltage?")
-voltage = st.radio("Select one:", ("Below 600V", "600V – 1000V", "Above 1000V"))
-if voltage == "600V – 1000V":
-    score += 1
-elif voltage == "Above 1000V":
+# 4. PID-resistant Panels
+if pid_resistant == "No":
     score += 2
+elif pid_resistant == "Not sure":
+    score += 1
 
-st.markdown("#### 6. Do you clean your panels regularly (once every 15–30 days)?")
-cleaning = st.radio("Select one:", ("Yes", "No"))
+# 5. Voltage
+if voltage == "Above 1000V":
+    score += 2
+elif voltage == "600V – 1000V":
+    score += 1
+
+# 6. Cleaning
 if cleaning == "No":
     score += 1
 
-st.markdown("#### 7. Is your system grounded properly with periodic insulation resistance checks?")
-grounding = st.radio("Select one:", ("Yes", "No", "Not sure"))
+# 7. Grounding
 if grounding == "No":
     score += 2
 elif grounding == "Not sure":
     score += 1
 
+# --- Risk Level Output ---
 st.markdown("---")
+st.subheader("📋 PID Risk Assessment")
 
-# Result
-if st.button("🔍 Check PID Risk Score"):
-    st.markdown("## 🔎 Results")
+if score <= 3:
+    st.success("✅ Low PID Risk: Your system appears well protected. Keep monitoring periodically.")
+elif score <= 6:
+    st.warning("⚠️ Medium PID Risk: Consider reviewing inverter type, module specs, and grounding.")
+else:
+    st.error("❌ High PID Risk: Immediate attention recommended! Review module certification, grounding, and inverter settings.")
 
-    if score <= 3:
-        st.success("✅ Low PID Risk – Your system is fairly safe. Keep up the good practices!")
-    elif score <= 6:
-        st.warning("⚠️ Medium PID Risk – Take preventive steps like grounding audit or using anti-PID devices.")
-    else:
-        st.error("❌ High PID Risk – Your plant is vulnerable. Consider immediate PID mitigation strategies!")
-
-    st.markdown(f"**Your PID Risk Score:** `{score}/13`")
-    st.markdown("To learn more about PID and its impact, [read this detailed story here](https://medium.com/@yourmediumprofile/pid-the-silent-killer-of-your-solar-dreams-...)")
-
+st.markdown("""
+---
+🧠 *Note: This tool provides an indicative assessment. For an in-depth audit, consult a solar performance specialist or your EPC provider.*
+""")
